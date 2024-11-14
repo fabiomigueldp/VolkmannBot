@@ -9,11 +9,10 @@ float duration, distance;
 // Definição dos pinos para o driver de motor L298N
 #define IN1 2   // Pino de controle IN1 para Motor A
 #define IN2 3   // Pino de controle IN2 para Motor A
-
+#define ENA 9   // Pino de habilitação ENA para Motor A (conectado a um pino PWM)
 #define IN3 4   // Pino de controle IN3 para Motor B
 #define IN4 5   // Pino de controle IN4 para Motor B
-
- 
+#define ENB 10  // Pino de habilitação ENA para Motor B (conectado a um pino PWM)
 
 // Função para disparar o pulso ultrassônico
 void DisparaPulsoUltrasonico() {
@@ -24,11 +23,18 @@ void DisparaPulsoUltrasonico() {
   digitalWrite(PinTrigger, LOW);
 }
 
+// Funções para controlar os motores
+void ajustarVelocidade(int vel) {
+  analogWrite(ENA, vel); // Ajusta a velocidade do Motor A
+  analogWrite(ENB, vel); // Ajusta a velocidade do Motor B
+}
+
 void moverFrente() {
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
+  Velocidade();
 }
 
 void parar() {
@@ -43,6 +49,7 @@ void re() {
   digitalWrite(IN2, HIGH);
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
+  Velocidade();
 }
 
 void virarDireita() {
@@ -50,6 +57,7 @@ void virarDireita() {
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
+  Velocidade();
 }
 
 void virarEsquerda() {
@@ -57,27 +65,51 @@ void virarEsquerda() {
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, LOW);
+  Velocidade();
 }
+
 void virar360() {
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
+  Velocidade();
+}
+void Velocidade(){
+  analogWrite(ENA,255);
+  analogWrite(ENB,255);
+  delay(30);
+  analogWrite(ENA,200);
+  analogWrite(ENB,200);
+  delay(30);
+  analogWrite(ENA,150);
+  analogWrite(ENB,150);
+  delay(30);
 }
 // Função de setup: inicializa os pinos
 void setup() {
   // Inicializa o LED embutido
   pinMode(LED_BUILTIN, OUTPUT);
 
-  // Inicializa os pinos do driver de motor como saídas
-  
-
   // Inicializa os pinos do sensor ultrassônico
   pinMode(PinTrigger, OUTPUT);
   pinMode(PinEcho, INPUT);
 
+  // Configura os pinos de controle como saída
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(ENA, OUTPUT);  // ENA como saída PWM
+  pinMode(ENB, OUTPUT);  // ENB como saída PWM
+
   // Inicializa o estado inicial dos motores e do sensor
-  parar();
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+  digitalWrite(ENA, LOW);
+  digitalWrite(ENB, LOW);
 }
 
 // Função loop: executa continuamente
@@ -93,12 +125,12 @@ void loop() {
     digitalWrite(LED_BUILTIN, HIGH); // Liga o LED
 
     moverFrente(); // Move o carrinho para frente
+
   } else { // Se a distância for menor ou igual a 0.2 metros
     digitalWrite(LED_BUILTIN, LOW); // Desliga o LED
-     
+
     parar(); // Para o carrinho
-    
-    delay(500); // Aguarda meio segundo
+    delay(400); // Aguarda meio segundo
 
     re(); // Move o carrinho para trás
     delay(500); // Move para trás por meio segundo
@@ -115,13 +147,11 @@ void loop() {
     } else {
       virar360();
     }
-
     delay(400); // Vira por meio segundo
 
     parar(); // Para após virar
     delay(200); // Pequena pausa
     
   }
-
   delay(30); // Pequena pausa antes da próxima leitura
 }
